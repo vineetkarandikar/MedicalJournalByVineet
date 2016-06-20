@@ -111,7 +111,7 @@ public class MedicalJournalItemServiceImpl implements MedicalJournalItemService 
 
 
   @Override
-  public void saveMedicalJournalItem(MedicalJournalItem medicalJournalItem) {
+  public MedicalJournalItem saveMedicalJournalItem(MedicalJournalItem medicalJournalItem) {
     LOGGER.debug(InternalAppConstant.LOGGER_MESSAGE_START
         + " save operation for Medical journal item started  "
         + InternalAppConstant.LOGGER_MESSAGE_END);
@@ -125,6 +125,7 @@ public class MedicalJournalItemServiceImpl implements MedicalJournalItemService 
     LOGGER.debug(InternalAppConstant.LOGGER_MESSAGE_START
         + " save operation for Medical journal item completed  "
         + InternalAppConstant.LOGGER_MESSAGE_END);
+    return medicalJournalItem;
   }
 
   @Override
@@ -148,13 +149,14 @@ public class MedicalJournalItemServiceImpl implements MedicalJournalItemService 
         + " delete operation for Medical journal item started  "
         + InternalAppConstant.LOGGER_MESSAGE_END);
     medicalJournalItemRepository.delete(medJournalItemId);
+    deletePdfFilesFromDirectory(medJournalItemId);
     LOGGER.debug(InternalAppConstant.LOGGER_MESSAGE_START
         + " delete operation for Medical journal item completed  "
         + InternalAppConstant.LOGGER_MESSAGE_END);
   }
 
   @Override
-  public List<MedicalJournalItem> viewMedicalJournalItemsByDescription(String description,
+  public List<MedicalJournalItem> getMedicalJournalItemsByDescription(String description,
       int pageNumber) {
     LOGGER
         .debug(InternalAppConstant.LOGGER_MESSAGE_START
@@ -163,6 +165,15 @@ public class MedicalJournalItemServiceImpl implements MedicalJournalItemService 
     PageRequest request = new PageRequest(pageNumber - 1, PAGE_SIZE);
     return medicalJournalItemRepository.getMedicalJournalItemsByDescription(description, request);
   }
+
+  @Override
+  public MedicalJournalItem getMedicalJournalItemById(long medJournalItemId) {
+    LOGGER.debug(InternalAppConstant.LOGGER_MESSAGE_START
+        + " retrieve operation for Medical journal item started based on id "
+        + InternalAppConstant.LOGGER_MESSAGE_END);
+    return medicalJournalItemRepository.getOne(medJournalItemId);
+  }
+
 
   @Override
   public List<MedicalJournalItem> getAllMedicalJournalItems(int pageNumber) {
@@ -174,7 +185,7 @@ public class MedicalJournalItemServiceImpl implements MedicalJournalItemService 
   }
 
   @Override
-  public void deletePdfFilesFromDirectory(List<String> fileNames, long medJournalItemId) {
+  public void deletePdfFilesFromDirectory(long medJournalItemId) {
     LOGGER.debug(InternalAppConstant.LOGGER_MESSAGE_START
         + " delete operation for files started in directory "
         + InternalAppConstant.LOGGER_MESSAGE_END);
@@ -205,4 +216,25 @@ public class MedicalJournalItemServiceImpl implements MedicalJournalItemService 
       throw new MedJournalException(messageByLocaleService.getMessage("file.delete.ops.fail"));
     }
   }
+
+  @Override
+  public void updatePdfFiles(MultipartFile[] files, long medJournalItemId) throws IOException {
+    LOGGER.debug(InternalAppConstant.LOGGER_MESSAGE_START
+        + " update operation for PDF Files started  " + InternalAppConstant.LOGGER_MESSAGE_END);
+    String fileName = null;
+    if (files != null && files.length > 0) {
+      for (int i = 0; i < files.length; i++) {
+        fileName = files[i].getOriginalFilename();
+        validatePDFFile(files[i]); // PDF validation
+        File file = new File(pdfDirPath + "/" + medJournalItemId + "/" + fileName);
+        if (file.exists()) {
+          file.delete();
+        }
+      }
+    }
+    saveFiles(files, medJournalItemId);
+    LOGGER.debug(InternalAppConstant.LOGGER_MESSAGE_START
+        + " update operation for PDF Files completed  " + InternalAppConstant.LOGGER_MESSAGE_END);
+  }
+
 }

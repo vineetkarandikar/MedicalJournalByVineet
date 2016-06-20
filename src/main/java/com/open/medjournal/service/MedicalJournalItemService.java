@@ -9,13 +9,13 @@ import com.open.medjournal.domain.MedicalJournalItem;
 
 public interface MedicalJournalItemService {
 
-  void saveMedicalJournalItem(MedicalJournalItem medicalJournalItem);
+  MedicalJournalItem saveMedicalJournalItem(MedicalJournalItem medicalJournalItem);
 
   void updateMedicalJournalItem(MedicalJournalItem medicalJournalItem);
   
   void deleteMedicalJournalItem(long medJournalItemId);
 
-  List<MedicalJournalItem> viewMedicalJournalItemsByDescription(String description,int pageNumber);
+  List<MedicalJournalItem> getMedicalJournalItemsByDescription(String description,int pageNumber);
   
   List<MedicalJournalItem> getAllMedicalJournalItems(int pageNumber);
 
@@ -23,8 +23,12 @@ public interface MedicalJournalItemService {
 
   void validatePDFFile(MultipartFile pdfFile) throws IOException;
 
-  void deletePdfFilesFromDirectory(List<String> fileNames, long medJournalItemId);
+  void deletePdfFilesFromDirectory(long medJournalItemId);
 
   void deletePdfFile(String fileName, long medJournalItemId);
+  
+  void updatePdfFiles(MultipartFile[] files, long medJournalItemId) throws IOException;
+
+  MedicalJournalItem getMedicalJournalItemById(long medJournalItemId);
 
 }
